@@ -1,0 +1,138 @@
+---
+title: "chapter-01-give-context-fast"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Chapter 1 - Give context fast
+
+## Lesson 1 - A chart to start out with
+
+```{r}
+
+# carregar dados
+penguins <- palmerpenguins::penguins |>
+  dplyr::filter(!is.na(sex))
+
+# plotar primeiro gráfico base
+penguins |>
+  # camada base
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  # camada geométrica
+  ggplot2::geom_point(
+    size = 3, # tamanho dos pontos
+    alpha = 0.75, # opacidade dos pontos
+    shape = 21, # tipo (tema) dos pontos
+    color = 'black', # cor da borda dos pontos
+    # garantir que os pontos sejam separados de acordo com o grupo específicado 
+    # no 'fill' do mapping, o seed é só pra garantir a mesma disposição sempre
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  )
+
+```
+
+
+## Lesson 2 - Make labels large enough
+
+```{r}
+
+penguins |>
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = 'black',
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  # adicionando um tema preenchendo com o argumento base_size para garantir que
+  # todo o texto do gráfico seja legível (aumentando o tamanho da fonte)
+  ggplot2::theme_minimal(base_size = 16)
+
+```
+
+
+
+## Lesson 3 - Meaningful label names
+```{r}
+penguins |>
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  ggplot2::theme_minimal(base_size = 16) +
+  # adicionando títulos
+  ggplot2::labs(
+    x = ggplot2::element_blank(), # remover o título do eixo x
+    y = "Comprimento do bico (em mm)", # eixo y
+    fill = "Sexo", # legenda
+    title = "Medições de diferentes espécies de pinguins" # título do gráfico
+  )
+
+```
+
+
+
+## Lesson 4 - Meaningful label numbers
+```{r}
+penguins |>
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  ggplot2::theme_minimal(base_size = 16) +
+  ggplot2::labs(
+    x = ggplot2::element_blank(),
+    y = "Comprimento do bico",
+    fill = "Sexo",
+    title = "Medições de diferentes espécies de pinguins"
+  ) +
+  # alterar os dados da legenda, para esse caso os dados são 'discretos', ou seja, categorias
+  ggplot2::scale_fill_discrete(
+    # tranformar as labels da legenda para primeira letra maiúscula
+    labels = \(x) stringr::str_to_title(x)
+  ) +
+  # alterar os dados do eixo y, para esse caso os dados são 'contínuos', ou seja,
+  # números
+  ggplot2::scale_y_continuous(
+    # adicionar um sufixo nos números do eixo
+    labels = scales::label_number(suffix = "mm")
+  )
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
