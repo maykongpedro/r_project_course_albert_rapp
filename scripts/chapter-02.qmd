@@ -1,0 +1,86 @@
+---
+title: "chapter-02-declutter-your-chart"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Chapter 2 - Declutter your chart
+
+```{r}
+# carregar dados
+penguins <- palmerpenguins::penguins |>
+  dplyr::filter(!is.na(sex)) |>
+  dplyr::mutate(
+    group_median_bill_length = median(bill_length_mm),
+    .by = c(species, sex)
+  ) |> 
+  dplyr::mutate(
+    species = forcats::fct_reorder(
+      species,
+      group_median_bill_length,
+      .fun = \(x) unique(x) |> diff() |> abs()
+    )
+  )
+
+# carregar oobjeto com o texto de rodapé
+caption_text <- "Espécies foram ranqueadas pela diferença na média dos comprimentos dos bicos entre sexos. \n Dados obtidos pelo pacote R {palmerpenguins}."
+
+```
+
+
+## Lesson 7 - Remove extra grid lines
+```{r}
+
+penguins |>    
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  ggplot2::theme_minimal(
+    base_size = 16,
+    base_family = "Source Sans Pro"
+  ) +
+  ggplot2::theme(
+    plot.title.position = "plot", 
+    plot.caption.position = "plot",
+    text = ggplot2::element_text(color = "grey20"), 
+    plot.title = ggplot2::element_text(lineheight = 1),
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(t = 4, b = 2, unit = "mm")
+    ),
+    plot.caption = ggplot2::element_text(size = ggplot2::rel(0.6)),
+
+    # remover gri lines menores
+    panel.grid.minor = ggplot2::element_blank(),
+
+    # diminuir tamanho e trocar a cor das grid lines principais
+    panel.grid.major = ggplot2::element_line(
+      color = "grey95", 
+      linewidth = 0.75
+    )
+  ) +
+  ggplot2::labs(
+    x = ggplot2::element_blank(),
+    y = ggplot2::element_blank(),
+    subtitle = "Comprimento do bico", 
+    fill = "Sexo",
+    title = "Pinguins Chinstrap possuem a maior diferença \n no comprimento dos bicos entre sexos",
+    caption = caption_text
+  ) +
+  ggplot2::scale_fill_discrete(labels = \(x) stringr::str_to_title(x)) +
+  ggplot2::scale_y_continuous(labels = scales::label_number(suffix = "mm"))
+
+
+```
