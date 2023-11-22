@@ -84,3 +84,160 @@ penguins |>
 
 
 ```
+
+
+
+## Lesson 8 - Advanced label formatting
+```{r}
+
+# para realizar essa formatação especial em css é necessário apontar para o
+# ggplot qual o elemento que vamos transformar para markdown, nesse caso
+# será o axis.text.y
+# span tags são usadas para formatações na linha usando css
+# necesse caso usamos o argumento style para puxar a customização do tamanho
+# do texto com font-size
+suffix_css_text <- "<span style='font-size:12px;'>mm</span>"
+
+penguins |>    
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  ggplot2::theme_minimal(
+    base_size = 16,
+    base_family = "Source Sans Pro"
+  ) +
+  ggplot2::theme(
+    plot.title.position = "plot", 
+    plot.caption.position = "plot",
+    text = ggplot2::element_text(color = "grey20"), 
+    plot.title = ggplot2::element_text(lineheight = 1),
+    plot.subtitle = ggplot2::element_text(
+      margin = ggplot2::margin(t = 4, b = 2, unit = "mm")
+    ),
+    plot.caption = ggplot2::element_text(size = ggplot2::rel(0.6)),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major = ggplot2::element_line(
+      color = "grey95", 
+      linewidth = 0.75
+    ),
+
+    # transformar o processamento de texto do eixo y em markdown para realizar
+    # a de vida conversão do código css
+    axis.text.y = ggtext::element_markdown() 
+  ) +
+  ggplot2::labs(
+    x = ggplot2::element_blank(),
+    y = ggplot2::element_blank(),
+    subtitle = "Comprimento do bico", 
+    fill = "Sexo",
+    title = "Pinguins Chinstrap possuem a maior diferença \n no comprimento dos bicos entre sexos",
+    caption = caption_text
+  ) +
+  ggplot2::scale_fill_discrete(labels = \(x) stringr::str_to_title(x)) +
+
+  # alterar o sufixo do eixo y utilizando uma c[odigo css
+  ggplot2::scale_y_continuous(labels = scales::label_number(suffix = suffix_css_text))
+
+```
+
+
+
+
+## Lesson 9 - Include yor legend into your (sub-)title
+```{r}
+
+# obter as cores para o gráfico
+cores <- scales::hue_pal()(2)
+# renomear o vetor de cores com os itens que existem no dataset e que iremos 
+# usar para plotar o gráfico. Importante para garantir que será plotado
+# exatamente a cor que queremos para cada item
+names(cores) <- c("female", "male")
+
+
+# para utilizar esse subtítulo customizado é necessário avisar o ggplot2
+# que o processamento do mesmo deverá ser feito com markdown
+# criando um texto em css para substituir o subtítulo do gráfico com cores
+# representativas que tomaram o lugar da legenda
+subtitle_css_text <- glue::glue(
+  "Comprimento do bico de Penguins ",
+  "<span style='color: {cores['male']};'>**Machos**</span>",
+  " e ",
+  "<span style='color: {cores['female']};'>**Fêmeas**</span>"
+)
+ 
+
+suffix_css_text <- "<span style='font-size:12px;'>mm</span>"
+
+penguins |>    
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.75,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  ggplot2::theme_minimal(
+    base_size = 16,
+    base_family = "Source Sans Pro"
+  ) +
+  ggplot2::theme(
+    plot.title.position = "plot", 
+    plot.caption.position = "plot",
+    text = ggplot2::element_text(color = "grey20"), 
+    plot.title = ggplot2::element_text(lineheight = 1),
+
+    # substituindo o element_text por element_markdown para efetuar o
+    # processamento do css no subtítulo
+    plot.subtitle = ggtext::element_markdown(
+      margin = ggplot2::margin(t = 4, b = 2, unit = "mm")
+    ),
+    plot.caption = ggplot2::element_text(size = ggplot2::rel(0.6)),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major = ggplot2::element_line(
+      color = "grey95", 
+      linewidth = 0.75
+    ),
+    axis.text.y = ggtext::element_markdown(),
+
+    # remover a legenda
+    legend.position = "none"
+
+  ) +
+  ggplot2::labs(
+    x = ggplot2::element_blank(),
+    y = ggplot2::element_blank(),
+    subtitle = subtitle_css_text, 
+    fill = "Sexo",
+    title = "Pinguins Chinstrap possuem a maior diferença \n no comprimento dos bicos entre sexos",
+    caption = caption_text
+  ) +
+
+  # alterar o fill para 'manual' para poder garantir quais cores serão usadas
+  # para cada valor da legenda
+  ggplot2::scale_fill_manual(
+    values = cores,
+    labels = \(x) stringr::str_to_title(x)
+  ) +
+
+  ggplot2::scale_y_continuous(labels = scales::label_number(suffix = suffix_css_text))
+
+
+```
