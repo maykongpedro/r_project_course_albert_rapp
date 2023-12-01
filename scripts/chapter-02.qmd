@@ -33,6 +33,7 @@ caption_text <- "Espécies foram ranqueadas pela diferença na média dos compri
 
 
 ## Lesson 7 - Remove extra grid lines
+
 ```{r}
 
 penguins |>
@@ -87,9 +88,8 @@ penguins |>
 
 ```
 
-
-
 ## Lesson 8 - Advanced label formatting
+
 ```{r}
 
 # para realizar essa formatação especial em css é necessário apontar para o
@@ -153,10 +153,8 @@ penguins |>
 
 ```
 
-
-
-
 ## Lesson 9 - Include yor legend into your (sub-)title
+
 ```{r}
 
 # obter as cores para o gráfico
@@ -242,9 +240,8 @@ penguins |>
 
 ```
 
-
-
 ## Lesson 10 - What else distracts from your message?
+
 ```{r}
 
 cores <- scales::hue_pal()(2)
