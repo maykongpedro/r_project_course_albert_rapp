@@ -221,5 +221,53 @@ new_design_with_lines_and_text |> scales_theme_labs()
 ```
 
 
+## Lesson 13 - A word on direct labels
+
+```{r}
+## Opcional
+# eu preferi muito mais a versão anterior, com a legenda no subtítulo
+
+new_design_direct_labels <- new_design + 
+  ggplot2::annotate(
+    geom = "segment",
+    x = c(0.65, 0.85, 1.035) - 0.01, # alterando um pouco o X
+    xend = c(0.775, 0.99, 1.125),
+    y = c(42.5, 46, 49.5) - 1, # alterando um pouco o Y
+    yend = c(38, 41, 46.25),
+    color = "grey60"
+  ) +
+  # usar as mesmas coordenadas para adicionar o texto,
+  # nesse caso apenas x e y pq nao tem começo e fim
+  ggplot2::annotate(
+    geom = "text",
+    x = c(0.65, 0.85, 1.035),
+    y = c(42.5, 46, 49.5),
+    label = c("Média", "Diferença", "1 Penguim"),
+    color = "grey50",
+    hjust = 1,
+    vjust = 1,
+    family = "Source Sans Pro",
+    fontface = "bold"
+  ) +
+  # adicionar o texto diretamente no gráfico
+  ggplot2::annotate(
+    geom = "text",
+    x = 2 + 0.2 * c(-1, 1),
+    y = 39.5,
+    label = c("Fêmeas", "Machos"),
+    color = cores,
+    vjust = 1,
+    family = "Source Sans Pro",
+    fontface = "bold",
+    size = 4.5
+  )
+
+# usar novamente o labs para sobrescrever o subtítulo
+scales_theme_labs(new_design_direct_labels) +
+  ggplot2::labs(subtitle = "Comprimento do bico")
+
+```
+
+
 
 
