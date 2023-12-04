@@ -1,0 +1,198 @@
+---
+title: "chapter-04-use-colors-efficiently"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Carregar dados do capítulo anterior
+
+```{r}
+# carregar dados
+penguins <- palmerpenguins::penguins |>
+  dplyr::filter(!is.na(sex)) |>
+  dplyr::mutate(
+    group_median_bill_length = median(bill_length_mm),
+    .by = c(species, sex)
+  ) |>
+  dplyr::mutate(
+    species = forcats::fct_reorder(
+      species,
+      group_median_bill_length,
+      .fun = \(x) unique(x) |>
+        diff() |>
+        abs()
+    )
+  )
+
+# carregar oobjeto com o texto de rodapé
+caption_text <- "Espécies foram ranqueadas pela diferença na média dos comprimentos dos bicos entre sexos. \n Dados obtidos pelo pacote R {palmerpenguins}."
+
+```
+
+Carregar gráfico do capítulo anterior para continuar nesse capítulo.
+```{r}
+cores <- scales::hue_pal()(2)
+names(cores) <- c("female", "male")
+
+subtitle_css_text <- glue::glue(
+  "Comprimento do bico de Penguins ",
+  "<span style='color: {cores['male']};'>**Machos**</span>",
+  " e ",
+  "<span style='color: {cores['female']};'>**Fêmeas**</span>"
+)
+suffix_css_text <- "<span style='font-size:12px;'>mm</span>"
+
+
+# criar uma função para fazer a customização do gráfico
+scales_theme_labs <- function(my_ggplot) {
+  my_ggplot +
+    ggplot2::theme_minimal(
+      base_size = 16,
+      base_family = "Source Sans Pro"
+    ) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.caption.position = "plot",
+      text = ggplot2::element_text(color = "grey20"),
+      plot.title = ggplot2::element_text(lineheight = 1),
+      plot.subtitle = ggtext::element_markdown(
+        margin = ggplot2::margin(t = 4, b = 2, unit = "mm")
+      ),
+      plot.caption = ggplot2::element_text(size = ggplot2::rel(0.6)),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_line(
+        color = "grey95",
+        linewidth = 0.75
+      ),
+      axis.text.y = ggtext::element_markdown(),
+      legend.position = "none"
+    ) +
+    ggplot2::labs(
+      x = ggplot2::element_blank(),
+      y = ggplot2::element_blank(),
+      subtitle = subtitle_css_text,
+      fill = "Sexo",
+      title = "Pinguins Chinstrap possuem a maior diferença \n no comprimento dos bicos entre sexos",
+      caption = caption_text
+    ) +
+    ggplot2::scale_fill_manual(
+      values = cores,
+      labels = \(x) stringr::str_to_title(x)
+    ) +
+    ggplot2::scale_y_continuous(labels = scales::label_number(suffix = suffix_css_text))
+}
+
+
+# calcular a média por sexo e espécie para adicionar no gráfico
+median_bill_length <- penguins |>
+  # dplyr::group_by(sex, species) |>
+  dplyr::summarise(
+    median_bill_length = median(bill_length_mm),
+    .by = c(sex, species)
+  )
+
+
+# criar um novo design para o gráfico
+new_design <- penguins |>
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      fill = sex
+    )
+  ) +
+  # modificar os pontos
+  ggplot2::geom_point(
+    size = 3,
+    alpha = 0.25, # diminuir a opacidade
+    shape = 21,
+    color = "white", # alterar a borda dos pontos para branco
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  # adicionar as médias como pontos
+  ggplot2::geom_point(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length),
+    size = 7,
+    shape = 21,
+    color = "black",
+    position = ggplot2::position_dodge(width = 0.75)
+  ) +
+  # adicionar a média como linha
+  ggplot2::geom_line(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, group = species),
+    col = "black",
+    linewidth = 1
+  ) +
+  # adicionar pontos  na ponta das linhas de médias
+  ggplot2::geom_point(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, group = species),
+    col = "black",
+    shape = "-",
+    size = 10
+  )
+
+new_design |> scales_theme_labs()
+
+```
+
+
+# Chapter 4 - Use colors efficientily
+
+```{r}
+new_design_with_lines_and_text <- new_design + 
+  ggplot2::annotate(
+    geom = "segment",
+    x = c(0.65, 0.85, 1.035) - 0.01, # alterando um pouco o X
+    xend = c(0.775, 0.99, 1.125),
+    y = c(42.5, 46, 49.5) - 1, # alterando um pouco o Y
+    yend = c(38, 41, 46.25),
+    color = "grey60"
+  ) +
+  # usar as mesmas coordenadas para adicionar o texto,
+  # nesse caso apenas x e y pq nao tem começo e fim
+  ggplot2::annotate(
+    geom = "text",
+    x = c(0.65, 0.85, 1.035),
+    y = c(42.5, 46, 49.5),
+    label = c("Média", "Diferença", "1 Penguim"),
+    color = "grey50",
+    hjust = 1,
+    vjust = 1,
+    family = "Source Sans Pro",
+    fontface = "bold"
+  )
+
+
+new_design_with_lines_and_text |> scales_theme_labs()
+```
+
+
+
+## Lesson 14 - Color-blind friendly colors & double coding
+```{r}
+
+# trocar a cor para uma paleta mais inclusiva para problemas de vista
+thematic::okabe_ito(2)
+cores <- c("#E69F00", "#009E73")
+names(cores) <- c("female", "male")
+
+# organizar a ordem das palavras no subtítulo para que elas sigam a ordem do gráfico (double coding)
+subtitle_css_text <- glue::glue(
+  "Comprimento do bico de Penguins ",
+  "<span style='color: {cores['female']};'>**Fêmeas**</span>",
+  " e ",
+  "<span style='color: {cores['male']};'>**Machos**</span>"
+)
+suffix_css_text <- "<span style='font-size:12px;'>mm</span>"
+
+new_design_with_lines_and_text |> scales_theme_labs()
+
+```
+
+
+
