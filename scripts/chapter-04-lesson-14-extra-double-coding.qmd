@@ -24,7 +24,7 @@ O objetivo desse script é formatar o gráfico do capítulo 4 com shapes represe
 6. Modificar o argumento `fill` do ggplot2::ggplot2 para `color` pois o geom_text não tem fill.
 7. Ajustar o `ggplot2::scale_fill_manual` para `scale_color_manual`
 8. Especificar no argumento `family` do `geom_text` a família referente a fonte de texto *Font Awesome 6 Free*
-9.
+9. Ajustar o texto no subtítulo para representar os ícone usados
 
 
 ## Como encontrar o nome certo da fonte
