@@ -1,0 +1,264 @@
+---
+title: "chapter-05-miscellaneous-techniques"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+
+## Como encontrar o nome certo da fonte
+```{r}
+
+# obter o caminho da font no modo sólido
+font_path <- systemfonts::system_fonts() |> 
+  dplyr::filter(
+    stringr::str_detect(family, "Awesome"),
+    style == "Solid"
+  ) |> 
+  dplyr::pull(path)
+
+
+# registrar no R para uso no gráfico
+systemfonts::register_font(
+  name = "Font Awesome 6 Free Solid",
+  plain = font_path,
+)
+
+```
+
+
+# Carregar dados do capítulo anterior
+
+```{r}
+# carregar dados
+penguins <- palmerpenguins::penguins |>
+  dplyr::filter(!is.na(sex)) |>
+  dplyr::mutate(
+    group_median_bill_length = median(bill_length_mm),
+    .by = c(species, sex)
+  ) |>
+  dplyr::mutate(
+    species = forcats::fct_reorder(
+      species,
+      group_median_bill_length,
+      .fun = \(x) unique(x) |>
+        diff() |>
+        abs()
+    )
+  )
+
+# carregar oobjeto com o texto de rodapé
+caption_text <- "Espécies foram ranqueadas pela diferença na média dos comprimentos dos bicos entre sexos. \n Dados obtidos pelo pacote R {palmerpenguins}."
+
+```
+
+```{r}
+
+# trocar a cor para uma paleta mais inclusiva para problemas de vista
+thematic::okabe_ito(2)
+cores <- c("#E69F00", "#009E73")
+names(cores) <- c("female", "male")
+
+
+# símbolos para a legenda
+simbolos <- c("circle", "square")
+names(simbolos) <- c("female", "male")
+
+
+# organizar a ordem das palavras no subtítulo para que elas sigam a ordem do gráfico (double coding)
+subtitle_css_text <- glue::glue(
+  "Comprimento do bico de Penguins ",
+  
+  "<span style ='color: {cores['female']};'>**Fêmeas**",
+  " (",
+  
+  "<span style ='font-family:\"Font Awesome 6 Free Solid\"; font-size:15px;'>{simbolos['female']}</span>",
+  ")",
+  
+  "</span>",
+  
+  
+  " e ",
+  
+    "<span style ='color: {cores['male']};'>**Machos**",
+  " (",
+  
+  "<span style ='font-family:\"Font Awesome 6 Free Solid\"; font-size:15px;'>{simbolos['male']}</span>",
+  
+  ")",
+  "</span>",
+  
+  
+)
+suffix_css_text <- "<span style='font-size:12px;'>mm</span>"
+
+
+# calcular a média por sexo e espécie para adicionar no gráfico
+median_bill_length <- penguins |>
+  # dplyr::group_by(sex, species) |>
+  dplyr::summarise(
+    median_bill_length = median(bill_length_mm),
+    .by = c(sex, species)
+  ) |> 
+  # criar a coluan de símbolos
+  dplyr::mutate(
+    symbol = simbolos[as.character(sex)]
+  )
+  
+
+
+# plotar gráfico
+penguins |>
+  dplyr::mutate(
+    # transformar em character a coluna sex para representar corretamente a ordem que desejamos dos símbolos por vetor
+    symbol = simbolos[as.character(sex)]
+  ) |> 
+  ggplot2::ggplot(
+    mapping = ggplot2::aes(
+      x = species,
+      y = bill_length_mm,
+      color = sex, # modificar para cor para conversar com os shapes,
+      fill = sex
+    )
+  ) +
+  
+  
+  # modificar os pontos em formato de shape
+  ggplot2::geom_text(
+    ggplot2::aes(label = symbol),
+    family = "Font Awesome 6 Free Solid",
+    size = 3,
+    alpha = 0.40,
+    position = ggplot2::position_jitterdodge(seed = 34543)
+  ) +
+  
+  
+  # adicionar médias que serão usadas como bordas
+  ggplot2::geom_text(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, label = symbol),
+    family = "Font Awesome 6 Free Solid",
+    size = 7.2,
+    color = "black",
+    position = ggplot2::position_dodge(width = 0.75)
+  ) +
+  
+  # adicionar média que será usada como coloração
+    ggplot2::geom_text(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, label = symbol),
+    family = "Font Awesome 6 Free Solid",
+    size = 6,
+    position = ggplot2::position_dodge(width = 0.75)
+  ) +
+  
+  
+  # adicionar a média como linha
+  ggplot2::geom_line(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, group = species),
+    col = "black",
+    linewidth = 1
+  ) +
+  # adicionar pontos  na ponta das linhas de médias
+  ggplot2::geom_point(
+    data = median_bill_length,
+    ggplot2::aes(y = median_bill_length, group = species),
+    col = "black",
+    shape = "-",
+    size = 10
+  ) +
+  ggplot2::theme_minimal(base_size = 16,
+                         base_family = "Source Sans Pro") +
+  ggplot2::theme(
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    text = ggplot2::element_text(color = "grey20"),
+    plot.title = ggplot2::element_text(lineheight = 1),
+    plot.subtitle = ggtext::element_markdown(margin = ggplot2::margin(
+      t = 4, b = 2, unit = "mm"
+    )),
+    plot.caption = ggplot2::element_text(size = ggplot2::rel(0.6)),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major = ggplot2::element_line(color = "grey95",
+                                             linewidth = 0.75),
+    axis.text.y = ggtext::element_markdown(),
+    legend.position = "none"
+  ) +
+  ggplot2::labs(
+    x = ggplot2::element_blank(),
+    y = ggplot2::element_blank(),
+    subtitle = subtitle_css_text,
+    fill = "Sexo",
+    title = "Pinguins Chinstrap possuem a maior diferença \n no comprimento dos bicos entre sexos",
+    caption = caption_text
+  ) +
+  # ajustando para conversar com o formato de shape
+  ggplot2::scale_color_manual(values = cores,
+                             labels = \(x) stringr::str_to_title(x)) +
+  ggplot2::scale_fill_manual(values = cores,
+                             labels = \(x) stringr::str_to_title(x)) +
+  
+  ggplot2::scale_y_continuous(labels = scales::label_number(suffix = suffix_css_text)) +
+    ggplot2::annotate(
+    geom = "segment",
+    x = c(0.65, 0.85, 1.035) - 0.01, # alterando um pouco o X
+    xend = c(0.775, 0.99, 1.125),
+    y = c(42.5, 46, 49.5) - 1, # alterando um pouco o Y
+    yend = c(38, 41, 46.25),
+    color = "grey60"
+  ) +
+  # usar as mesmas coordenadas para adicionar o texto,
+  # nesse caso apenas x e y pq nao tem começo e fim
+  ggplot2::annotate(
+    geom = "text",
+    x = c(0.65, 0.85, 1.035),
+    y = c(42.5, 46, 49.5),
+    label = c("Média", "Diferença", "1 Penguim"),
+    color = "grey50",
+    hjust = 1,
+    vjust = 1,
+    family = "Source Sans Pro",
+    fontface = "bold"
+  )
+  
+```
+
+
+## Exportar gráfico como uma imagem
+```{r}
+
+# exportar o último gráfico plotado, sem corrigir nenhum tamanho
+ggplot2::ggsave(
+  filename = here::here(
+    "plots_outputs",
+    "my_plot_resolucao_errada.png"
+  ),
+  width = 16,
+  height = 9,
+  units = "cm",
+  dpi = 300,
+  bg = "white"
+)
+
+# usando o gg_record podemos garantir que todos os gráficos plotados vão obedecer o tamanho padronizado, assim uma vez que exibimos o gráfico no painel do R, ele é salvo automaticamente com as especificações estabelecidas.
+
+## Sempre utilizar isso antes de começar a fazer os gráficos, assim todas as configurações serão realizadas de acordo com o output final
+
+### É NECESSÁRIO DAR LIBRARY NO GGPLOT PARA FUNCIONAR
+library(ggplot2)
+camcorder::gg_record(
+  # dir = here::here("plots_outputs", "ggrecords"),
+  dir ="plots_outputs",
+  width = 16,
+  height = 9,
+  units = "cm",
+  dpi = 300,
+  bg = "white"
+)
+
+
+```
+
+
